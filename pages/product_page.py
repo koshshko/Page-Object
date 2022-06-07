@@ -2,35 +2,37 @@ from .base_page import BasePage
 from .locators import ProductPageLocators
 
 class ProductPage(BasePage):
-    def should_be_added_to_basket(self):
-        self.add_product_to_basket()   #добавить продукт в корзину
-        self.product_was_added_message()  #сообщение о том, что товар добавлен в корзину
-        self.added_product_name_is_correct() #наименование товара в корзине корректное
-        self.basket_total_price_message()   #сообщение со стоимостью корзины
-        self.added_product_price_is_correct() #стоимость товара корректная в сообщении со стоимостью корзины
+    def add_product_to_cart(self):
+        btn = self.browser.find_element(*ProductPageLocators.ADD_TO_CART_BTN)
+        btn.click()
 
-    def add_product_to_basket(self):
-        link = self.browser.find_element(*ProductPageLocators.ADD_BUTTON)
-        link.click()
+    def should_be_alert_that_the_product_has_been_added_to_the_basket(self):
+        self.should_be_alert_block()
+        self.should_be_product_name_in_alert()
 
-    def added_product_price_is_correct(self):
-        product_price = self.browser.find_element(*ProductPageLocators.PRODUCT_PRICE)
-        product_price_in_message = self.browser.find_element(*ProductPageLocators.PRODUCT_PRICE_IN_MESSAGE)
-        assert product_price.text == product_price_in_message.text, "Product price in the message isn't correct"
+    def should_be_alert_block(self):
+        assert self.is_element_present(*ProductPageLocators.ALERT_PRODUCT_ADDED), "Product added alert is not presented"
 
-    def added_product_name_is_correct(self):
-        product_added_name = self.browser.find_element(*ProductPageLocators.PRODUCT_NAME_ADDED_IN_MESSAGE)
-        product_name = self.browser.find_element(*ProductPageLocators.PRODUCT_NAME)
-        assert product_added_name.text == product_name.text, "Product name in the basket isn't correct"
+    def should_be_product_name_in_alert(self):
+        product_name = self.browser.find_element(*ProductPageLocators.PRODUCT_NAME).text
+        alert_txt = self.browser.find_element(*ProductPageLocators.ALERT_PRODUCT_ADDED_INNER_TXT).text
+        assert product_name == alert_txt, "Alert message don't contains product name"
 
-    def basket_total_price_message(self):
-        assert self.is_element_present(*ProductPageLocators.TOTAL_PRICE_MESSAGE), "There is no message containing the total price of the products added"
+    def should_be_alert_with_basket_cost(self):
+        self.should_be_alert_price_block()
+        self.should_be_price_in_alert()
 
-    def product_was_added_message(self):
-        assert self.is_element_present(*ProductPageLocators.ADDED_TO_BASKET_MESSAGE), "There is no message that the product was added to the basket"
+    def should_be_alert_price_block(self):
+        assert self.is_element_present(*ProductPageLocators.ALERT_CART_PRICE), "Cart price alert is not presented"
 
-    def should_not_be_success_message(self): #проверка отсутствия сообщения об успешном добавлении товара, когда корзина пустая
-        assert self.is_not_element_present(*ProductPageLocators.ADDED_TO_BASKET_MESSAGE), "Success message is presented, but should not be"
+    def should_be_price_in_alert(self):
+        product_price = self.browser.find_element(*ProductPageLocators.PRODUCT_PRICE).text
+        alert_txt = self.browser.find_element(*ProductPageLocators.ALERT_CART_PRICE_TXT).text
+        assert product_price == alert_txt, "Alert message don't contains product price"
 
-    def success_message_should_disappear(self):
-        assert self.is_disappeared(*ProductPageLocators.ADDED_TO_BASKET_MESSAGE), "Success message didn't dissapear"
+    def should_not_be_success_message(self):
+        assert self.is_not_element_present(*ProductPageLocators.ALERT_PRODUCT_ADDED), "Success message is presented, " \
+                                                                                      "but should not be"
+
+    def should_disappear_success_message(self):
+        assert self.is_disappear(*ProductPageLocators.ALERT_PRODUCT_ADDED), "Success message doesn't disappear"
